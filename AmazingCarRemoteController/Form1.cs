@@ -46,7 +46,7 @@ namespace AmazingCarRemoteController {
         }
 
         private void Form1_Load(object sender, EventArgs e) {
-
+            threadArray = new Thread[2];
             System.Console.WriteLine(ControllerCmd[0].Length);
 
             //Control.CheckForIllegalCrossThreadCalls = false;
@@ -176,7 +176,19 @@ namespace AmazingCarRemoteController {
             
         }
 
+        private Thread[] threadArray;
+
         private void button10_Click(object sender, EventArgs e) {
+            try {
+                Thread t1 = (Thread)threadArray[0];
+                Thread t2 = (Thread)threadArray[1];
+                t1.Abort();
+                t2.Abort();
+                client.Close();
+            } catch { 
+            
+            }
+
             if (button10.Text == "停止转发") {
                 try {
                     dataTranser.WriteString(ControllerCmd[2], true);
@@ -197,10 +209,17 @@ namespace AmazingCarRemoteController {
                 client = new TcpClient();
 
                 Thread th1 = new Thread(uiTransData);
-                th1.Start();
-
+                
                 Thread th2 = new Thread(uiTarData);
-                th2.Start();
+                try {
+                    th1.Start();
+                    threadArray[0] = th1;
+                    th2.Start();
+                    threadArray[1] = th2;
+                }catch{
+                    return;
+                }
+                
 
                 stopTransFlag = false;
                 button10.Text = "停止转发";
@@ -264,26 +283,28 @@ namespace AmazingCarRemoteController {
                 client.Close();
                 return;
             }
-            
-
-            char[] buffer = new char[100];
+            char[] buffer = new char[200];
             bool startFlag = false;
-            char[] data = new char[100];
+            char[] data = new char[200];
             int current_index = 0;
             while (!stopTransFlag) {
+                
                 Array.Clear(buffer, 0, buffer.Length);
                 int size = dataTranser.Read(buffer, buffer.Length);
 
-                for (int i = 0; i < 100; i++) {
+                String str = new String(buffer);
+                changeRichTextBox1(str);
+
+                for (int i = 0; i < buffer.Length; i++) {
                     if (buffer[i] == '#') {
-                        Array.Clear(data, 0, 100);
+                        Array.Clear(data, 0, data.Length);
                         startFlag = true;
                         current_index = 0;
                         data[current_index++] = '#';
                     } else if (startFlag) {
-                        if (current_index >= 100) {
+                        if (current_index >= buffer.Length) {
                             //lost frames;
-                            Array.Clear(data, 0, 100);
+                            Array.Clear(data, 0, data.Length);
                             startFlag = false;
                             current_index = 0;
                             continue;
@@ -293,7 +314,9 @@ namespace AmazingCarRemoteController {
                             String result = processCarState(data);
                             if (result != "") {
                                 try {
-                                    sw.Write(result);
+                                    System.Console.WriteLine("TRANS:" + result);
+
+                                    sw.Write("#" + result + "$");
                                     sw.Flush();
                                 } catch {
                                     changeRichTextBox7("连接已中断！");
@@ -301,17 +324,17 @@ namespace AmazingCarRemoteController {
                                     client.Close();
                                     return;
                                 }
-                                
+
                             }
-                            Array.Clear(data, 0, 100);
+                            Array.Clear(data, 0, buffer.Length);
                             startFlag = false;
                             current_index = 0;
                             continue;
                         }
                     }
+                    
                 }
-                String str = new String(buffer);
-                changeRichTextBox1(str);
+                
             }
             changeRichTextBox7("连接已关闭！");
             client.Close();
