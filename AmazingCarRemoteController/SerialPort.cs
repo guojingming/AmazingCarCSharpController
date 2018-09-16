@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AmazingCarRemoteController {
-    class MySerialPort {
+    public class MySerialPort {
         //
         public bool OpenSerialPort(string portName, int baudRate) {
             try {
@@ -21,6 +21,10 @@ namespace AmazingCarRemoteController {
                 return false;
             }
             
+        }
+
+        public void DiscardInBuffer() {
+            sp.DiscardInBuffer();
         }
 
         public int Read(char[] buffer, int size) {

@@ -46,7 +46,6 @@ namespace AmazingCarRemoteController {
         }
 
         private void Form1_Load(object sender, EventArgs e) {
-            threadArray = new Thread[2];
             System.Console.WriteLine(ControllerCmd[0].Length);
 
             //Control.CheckForIllegalCrossThreadCalls = false;
@@ -72,7 +71,7 @@ namespace AmazingCarRemoteController {
             comboBox3.Items.Add("/dev/ttyUSB1");
             comboBox3.Items.Add("/dev/ttyUSB2");
             comboBox3.Items.Add("/dev/ttyUSB3");
-            comboBox3.Text = "/dev/ttyUSB1";
+            comboBox3.Text = "/dev/ttyUSB0";
 
             comboBox5.Items.Add("/dev/ttyUSB0");
             comboBox5.Items.Add("/dev/ttyUSB1");
@@ -106,24 +105,7 @@ namespace AmazingCarRemoteController {
            
         }
 
-        private String processCarState(char[] buffer) {
-            String carStateStr = new String(buffer);
-
-            int _X = carStateStr.IndexOf("_X");
-            int _Y = carStateStr.IndexOf("_Y");
-            int _A = carStateStr.IndexOf("_A");
-            int _S = carStateStr.IndexOf("_S");
-
-            try {
-                String _X_str = carStateStr.Substring(_X + 2, _Y - _X - 2);
-                String _Y_str = carStateStr.Substring(_Y + 2, _A - _Y - 2);
-                String _A_str = carStateStr.Substring(_A + 2, _S - _A - 2);
-                String _S_str = carStateStr.Substring(_S + 2, carStateStr.IndexOf("$") - _S - 2);
-                return _X_str + " " + _Y_str + " " + _A_str + " " + _S_str;
-            } catch {
-                return "";
-            }
-        }
+        
 
         //private void recieveData() {
         //    char[] buffer = new char[100];
@@ -164,66 +146,35 @@ namespace AmazingCarRemoteController {
         //}
 
         private MySerialPort dataTranser;
-        private bool dataTranserStopFlag;
+
         private void button1_Click(object sender, EventArgs e) {
             if (dataTranser.OpenSerialPort(comboBox2.Text, Int32.Parse(comboBox1.Text))) {
-                dataTranserStopFlag = false;
-                //Thread th = new Thread(recieveData);
-                //th.Start();
                 button1.Enabled = false;
                 button2.Enabled = true;
+                Form2.setPortObj(dataTranser);
             }
             
         }
 
-        private Thread[] threadArray;
 
+        private Form2 form2;
         private void button10_Click(object sender, EventArgs e) {
-            try {
-                Thread t1 = (Thread)threadArray[0];
-                Thread t2 = (Thread)threadArray[1];
-                t1.Abort();
-                t2.Abort();
-                client.Close();
-            } catch { 
-            
-            }
-
-            if (button10.Text == "停止转发") {
+            if (form2 == null || !form2.Created) {
+                form2 = new Form2();
+                form2.Show();
+            } else {
                 try {
-                    dataTranser.WriteString(ControllerCmd[2], true);
-                    changeRichTextBox2(ControllerCmd[2]);
-                } catch {
-                    System.Console.WriteLine("请先打开串口");
-                }
-                stopTransFlag = true;
-                button10.Text = "开始转发";
-            } else if (button10.Text == "开始转发") {
-                try {
-                    dataTranser.WriteString(ControllerCmd[3], true);
-                    changeRichTextBox2(ControllerCmd[3]);
-                } catch {
-                    System.Console.WriteLine("请先打开串口");
-                }
-
-                client = new TcpClient();
-
-                Thread th1 = new Thread(uiTransData);
-                
-                Thread th2 = new Thread(uiTarData);
-                try {
-                    th1.Start();
-                    threadArray[0] = th1;
-                    th2.Start();
-                    threadArray[1] = th2;
+                    form2.Close();
+                    form2 = new Form2();
+                    form2.Show();
                 }catch{
-                    return;
+                    System.Console.WriteLine("打开窗口失败");
                 }
-                
-
-                stopTransFlag = false;
-                button10.Text = "停止转发";
             }
+                
+            
+            
+            
         }
 
         public static bool stopTransFlag = true;
@@ -259,85 +210,88 @@ namespace AmazingCarRemoteController {
         private StreamReader sr = null;
 
         public void uiTransData() {
-            myIP = IPAddress.Parse(textBox1.Text);
-            //与TCP服务器连接
-            try {
-                if (!client.Connected) {
-                    client.Connect(myIP, 1888);
-                    changeRichTextBox7("连接成功！");
-                }
-            } catch (Exception e) {
-                System.Console.WriteLine(e.Message);
-                changeRichTextBox7("连接失败！请检查网络设置！");
-                changeButton10("开始转发");
-                return;
-            }
+            //myIP = IPAddress.Parse(textBox1.Text);
+            ////与TCP服务器连接
+            //try {
+            //    if (!client.Connected) {
+            //        client.Connect(myIP, 1888);
+            //        changeRichTextBox7("连接成功！");
+            //    }
+            //} catch (Exception e) {
+            //    System.Console.WriteLine(e.Message);
+            //    changeRichTextBox7("连接失败！请检查网络设置！");
+            //    changeButton10("开始转发");
+            //    return;
+            //}
 
-            try {
-                stream = client.GetStream();
-                sw = new StreamWriter(stream);
-            } catch(Exception exception) {
-                System.Console.WriteLine(exception.Message);
-                changeRichTextBox7("管道创建失败！请重新连接！");
-                changeButton10("开始转发");
-                client.Close();
-                return;
-            }
-            char[] buffer = new char[200];
-            bool startFlag = false;
-            char[] data = new char[200];
-            int current_index = 0;
-            while (!stopTransFlag) {
-                
-                Array.Clear(buffer, 0, buffer.Length);
-                int size = dataTranser.Read(buffer, buffer.Length);
+            //try {
+            //    stream = client.GetStream();
+            //    sw = new StreamWriter(stream);
+            //} catch(Exception exception) {
+            //    System.Console.WriteLine(exception.Message);
+            //    changeRichTextBox7("管道创建失败！请重新连接！");
+            //    changeButton10("开始转发");
+            //    client.Close();
+            //    return;
+            //}
+            //char[] buffer = new char[200];
+            //bool startFlag = false;
+            //char[] data = new char[200];
+            //int current_index = 0;
+            //while (!stopTransFlag) {
+            //    String result = "20 20 90 4";
+            //    sw.Write("#" + result + "$");
+            //    sw.Flush();
 
-                String str = new String(buffer);
-                changeRichTextBox1(str);
+                //Array.Clear(buffer, 0, buffer.Length);
+                //int size = dataTranser.Read(buffer, buffer.Length);
 
-                for (int i = 0; i < buffer.Length; i++) {
-                    if (buffer[i] == '#') {
-                        Array.Clear(data, 0, data.Length);
-                        startFlag = true;
-                        current_index = 0;
-                        data[current_index++] = '#';
-                    } else if (startFlag) {
-                        if (current_index >= buffer.Length) {
-                            //lost frames;
-                            Array.Clear(data, 0, data.Length);
-                            startFlag = false;
-                            current_index = 0;
-                            continue;
-                        }
-                        data[current_index++] = buffer[i];
-                        if (buffer[i] == '$') {
-                            String result = processCarState(data);
-                            if (result != "") {
-                                try {
-                                    System.Console.WriteLine("TRANS:" + result);
+                //String str = new String(buffer);
+                //changeRichTextBox1(str);
 
-                                    sw.Write("#" + result + "$");
-                                    sw.Flush();
-                                } catch {
-                                    changeRichTextBox7("连接已中断！");
-                                    changeButton10("开始转发");
-                                    client.Close();
-                                    return;
-                                }
+                //for (int i = 0; i < buffer.Length; i++) {
+                //    if (buffer[i] == '#') {
+                //        Array.Clear(data, 0, data.Length);
+                //        startFlag = true;
+                //        current_index = 0;
+                //        data[current_index++] = '#';
+                //    } else if (startFlag) {
+                //        if (current_index >= buffer.Length) {
+                //            //lost frames;
+                //            Array.Clear(data, 0, data.Length);
+                //            startFlag = false;
+                //            current_index = 0;
+                //            continue;
+                //        }
+                //        data[current_index++] = buffer[i];
+                //        if (buffer[i] == '$') {
+                //            String result = processCarState(data);
+                //            if (result != "") {
+                //                try {
+                //                    System.Console.WriteLine("TRANS:" + result);
 
-                            }
-                            Array.Clear(data, 0, buffer.Length);
-                            startFlag = false;
-                            current_index = 0;
-                            continue;
-                        }
-                    }
+                //                    sw.Write("#" + result + "$");
+                //                    sw.Flush();
+                //                } catch {
+                //                    changeRichTextBox7("连接已中断！");
+                //                    changeButton10("开始转发");
+                //                    client.Close();
+                //                    return;
+                //                }
+
+                //            }
+                //            Array.Clear(data, 0, buffer.Length);
+                //            startFlag = false;
+                //            current_index = 0;
+                //            continue;
+                //        }
+                //    }
                     
-                }
+                //}
                 
-            }
-            changeRichTextBox7("连接已关闭！");
-            client.Close();
+            //}
+            //changeRichTextBox7("连接已关闭！");
+            //client.Close();
             //CarData data1;
             //data1.x = 20;
             //data1.y = 20;
@@ -376,98 +330,97 @@ namespace AmazingCarRemoteController {
             //    client.Close();
             //    return;
             //}
-            Thread.Sleep(2000);
-            //读数据流对象
-            try {
-                sr = new StreamReader(stream);
-            } catch {
-                return;
-            }
+            //Thread.Sleep(2000);
+            ////读数据流对象
+            //try {
+            //    sr = new StreamReader(stream);
+            //} catch {
+            //    return;
+            //}
             
-            bool temp_flag = false;
+            //bool temp_flag = false;
 
            
 
-            char[] buffer = new char[1024];
-            while (!stopTransFlag) {
-                try {
-                    Array.Clear(buffer, 0, 1024);
-                    sr.Read(buffer, 0, 1024);
-                } catch {
-                    System.Console.WriteLine("Read TCP 失败");
-                    return;
-                }
-                String str = new String(buffer);
-                if (!str.StartsWith("#T")) {
-                    System.Console.WriteLine("目标数据头错误");
-                    continue;
-                }
-                try {
-                    str = str.Substring(2);
-                    str = str.Substring(0, str.LastIndexOf('$') + 1);
-                } catch {
-                    System.Console.WriteLine("目标数据串错误");
-                    System.Console.WriteLine(str);
-                    continue;
-                }
+            //char[] buffer = new char[1024];
+            //while (!stopTransFlag) {
+            //    try {
+            //        Array.Clear(buffer, 0, 1024);
+            //        sr.Read(buffer, 0, 1024);
+            //    } catch {
+            //        System.Console.WriteLine("Read TCP 失败");
+            //        return;
+            //    }
+            //    String str = new String(buffer);
+            //    if (!str.StartsWith("#T")) {
+            //        System.Console.WriteLine("目标数据头错误");
+            //        continue;
+            //    }
+            //    try {
+            //        str = str.Substring(2);
+            //        str = str.Substring(0, str.LastIndexOf('$') + 1);
+            //    } catch {
+            //        System.Console.WriteLine("目标数据串错误");
+            //        System.Console.WriteLine(str);
+            //        continue;
+            //    }
                 
-                //add to tars
-                ArrayList tars = new ArrayList();
-                String[] strs = str.Split('$');
-                if (strs.Length == 0) {
-                    continue;
-                }
-                ArrayList realStrs = new ArrayList();
-                for (int i = 0; i < strs.Length; i++) {
-                    if (strs[i] != "") {
-                        realStrs.Add(strs[i]);
-                    }
-                }
+            //    //add to tars
+            //    ArrayList tars = new ArrayList();
+            //    String[] strs = str.Split('$');
+            //    if (strs.Length == 0) {
+            //        continue;
+            //    }
+            //    ArrayList realStrs = new ArrayList();
+            //    for (int i = 0; i < strs.Length; i++) {
+            //        if (strs[i] != "") {
+            //            realStrs.Add(strs[i]);
+            //        }
+            //    }
                 
-                int tarCount = 0;
-                try {
-                    tarCount = Int32.Parse(((String)realStrs[0]).Substring(1));
-                    if (realStrs.Count != tarCount + 1) {
-                        continue;
-                    } else {
-                        for (int i = 1; i < realStrs.Count; i++) {
-                            String tempStr = (String)realStrs[i];
-                            float x = (float)Math.Round(float.Parse(tempStr.Substring(1, tempStr.IndexOf(',')-1)),3);
-                            float y = (float)Math.Round(float.Parse(tempStr.Substring(tempStr.IndexOf(',') + 1)),3);
-                            CYPoint point = new CYPoint(x, y);
-                            tars.Add(point);
-                        }
-                    }
-                } catch {
-                    continue;
-                }
+            //    int tarCount = 0;
+            //    try {
+            //        tarCount = Int32.Parse(((String)realStrs[0]).Substring(1));
+            //        if (realStrs.Count != tarCount + 1) {
+            //            continue;
+            //        } else {
+            //            for (int i = 1; i < realStrs.Count; i++) {
+            //                String tempStr = (String)realStrs[i];
+            //                float x = (float)Math.Round(float.Parse(tempStr.Substring(1, tempStr.IndexOf(',')-1)),3);
+            //                float y = (float)Math.Round(float.Parse(tempStr.Substring(tempStr.IndexOf(',') + 1)),3);
+            //                CYPoint point = new CYPoint(x, y);
+            //                tars.Add(point);
+            //            }
+            //        }
+            //    } catch {
+            //        continue;
+            //    }
 
-                System.Console.WriteLine(str);
-                try {
-                    //替换设备号
-                    String cmd = ControllerCmd[12];
-                    cmd = cmd.Replace("0", tars.Count + "");
-                    dataTranser.WriteString(cmd, true);
-                    for (int i = 0; i < tars.Count; i++) {
-                        cmd = ControllerCmd[13];
-                        cmd = cmd.Replace("p1", i + "");
-                        cmd = cmd.Replace("p2", ((CYPoint)tars[i]).x + "");
-                        cmd = cmd.Replace("p3", ((CYPoint)tars[i]).y + "");
-                        while (cmd.Length < 50) {
-                            cmd += "$";
-                        }
-                        dataTranser.WriteString(cmd, true);
-                    }
-                    //changeRichTextBox2(cmd);
-                } catch {
-                    System.Console.WriteLine("请先打开串口");
-                    return;
-                }
-            }
+            //    System.Console.WriteLine(str);
+            //    try {
+            //        //替换设备号
+            //        String cmd = ControllerCmd[12];
+            //        cmd = cmd.Replace("0", tars.Count + "");
+            //        dataTranser.WriteString(cmd, true);
+            //        for (int i = 0; i < tars.Count; i++) {
+            //            cmd = ControllerCmd[13];
+            //            cmd = cmd.Replace("p1", i + "");
+            //            cmd = cmd.Replace("p2", ((CYPoint)tars[i]).x + "");
+            //            cmd = cmd.Replace("p3", ((CYPoint)tars[i]).y + "");
+            //            while (cmd.Length < 50) {
+            //                cmd += "$";
+            //            }
+            //            dataTranser.WriteString(cmd, true);
+            //        }
+            //        //changeRichTextBox2(cmd);
+            //    } catch {
+            //        System.Console.WriteLine("请先打开串口");
+            //        return;
+            //    }
+            //}
         }
 
         private void button2_Click(object sender, EventArgs e) {
-            dataTranserStopFlag = true;
             dataTranser.Close();
             button1.Enabled = true;
             button2.Enabled = false;
