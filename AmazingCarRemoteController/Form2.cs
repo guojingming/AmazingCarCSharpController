@@ -34,15 +34,22 @@ namespace AmazingCarRemoteController {
         }
 
         private void Form2_Load(object sender, EventArgs e) {
-            mySerialPort.WriteString("#UI_OPEN$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", true);
+            
             Thread th1 = new Thread(showTrace);
             th1.Start();
 
             textBox1.Text = "D:/Target1.txt";
         }
 
+        Thread th2 = null;
         private void button3_Click(object sender, EventArgs e) {
-            Thread th2 = new Thread(getData);
+            mySerialPort.WriteString("#UI_OPEN$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", true);
+            try {
+                th2.Abort();
+            } catch { 
+            
+            }
+            th2 = new Thread(getData);
             th2.Start();
         }
 
@@ -195,10 +202,17 @@ namespace AmazingCarRemoteController {
             //##################################画参考线
             drawLines(g);
             //画字
+            //目标点坐标
+            for (int i = 0; i < targetPointCount; i++) {
+                MyPoint p = targetPoints[i];
+                int x = (int)(mapPanel.Width / 2 + p.X / pixelStep);
+                int y = (int)(mapPanel.Height / 2 - p.Y / pixelStep);
+                drawText(g, "T" + i + "(" + p.X + "  " + p.Y + ")", x - 3, y - 13, Color.Red);
+            }
             //原点坐标
-            drawText(g, "O(0,0)", mapPanel.Width / 2 - 10, mapPanel.Height / 2 - 23, Color.Red);
+            drawText(g, "O(0 0)", mapPanel.Width / 2 - 10, mapPanel.Height / 2 - 23, Color.Red);
             //车坐标
-            drawText(g, "Car(" + result[0].ToString("F2") + "," + result[1].ToString("F2") + ")", render_x - 40, render_y - 30, Color.Red);
+            drawText(g, "Car(" + result[0].ToString("F2") + "  " + result[1].ToString("F2") + ")", render_x - 40, render_y - 30, Color.Red);
 
             //#################################刷新
             rg.DrawImage(bmp, 0, 0);
