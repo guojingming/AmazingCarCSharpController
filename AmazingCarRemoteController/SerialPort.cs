@@ -16,7 +16,7 @@ namespace AmazingCarRemoteController {
                 sp.PortName = portName;
                 sp.Open();
                 return true;
-            } catch (Exception e) {
+            } catch {
                 System.Console.WriteLine("串口打开失败");
                 return false;
             }
@@ -31,9 +31,18 @@ namespace AmazingCarRemoteController {
             try {
                 return sp.Read(buffer, 0, size);
             } catch {
-                System.Console.WriteLine("强制中断数传");
+                System.Console.WriteLine("串口读取失败！请检查串口是否已断开！");
                 return 0;
             }
+        }
+
+        public int Write(byte[] buffer) {
+            try {
+                sp.Write(buffer, 0, buffer.Length);
+            } catch {
+                System.Console.WriteLine("串口写入失败！请检查串口是否已断开！");
+            }
+            return 0;
         }
 
         public int WriteString(String str, bool newLine) {
@@ -45,7 +54,7 @@ namespace AmazingCarRemoteController {
                 }
                 
             } catch {
-                System.Console.WriteLine("强制中断数传");
+                System.Console.WriteLine("串口写入失败！请检查串口是否已断开！");
             }
             return 0;
         }

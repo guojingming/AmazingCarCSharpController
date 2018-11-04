@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazingCarRemoteController", "AmazingCarRemoteController\AmazingCarRemoteController.csproj", "{6C4FCC8C-4A7E-4ADC-8485-912D6EAE53F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WheeledCarTestController", "WheeledCarTestController\WheeledCarTestController.csproj", "{88ABA576-66E6-4286-B127-809499FE5DC8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{6C4FCC8C-4A7E-4ADC-8485-912D6EAE53F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C4FCC8C-4A7E-4ADC-8485-912D6EAE53F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C4FCC8C-4A7E-4ADC-8485-912D6EAE53F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88ABA576-66E6-4286-B127-809499FE5DC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88ABA576-66E6-4286-B127-809499FE5DC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88ABA576-66E6-4286-B127-809499FE5DC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88ABA576-66E6-4286-B127-809499FE5DC8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

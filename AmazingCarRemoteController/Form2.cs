@@ -34,27 +34,11 @@ namespace AmazingCarRemoteController {
         }
 
         private void Form2_Load(object sender, EventArgs e) {
-            
             Thread th1 = new Thread(showTrace);
             th1.Start();
-
-            textBox1.Text = "D:/Target1.txt";
+            textBox1.Text = "D:/Target.txt";
         }
 
-        Thread th2 = null;
-        private void button3_Click(object sender, EventArgs e) {
-            mySerialPort.WriteString("#UI_OPEN$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", true);
-            try {
-                th2.Abort();
-            } catch { 
-            
-            }
-            th2 = new Thread(getData);
-            th2.Start();
-        }
-
-        
-        
 
         MyPoint[] tracePoints;
         int[] traceColors;
@@ -68,88 +52,17 @@ namespace AmazingCarRemoteController {
         float metterPixel;
 
         Bitmap bmp;
-        float[] result;
-        char[] data_buffer;
-        char[] real_data_buffer;
-        private void getData() {
-            data_buffer = new char[200];
-            real_data_buffer = new char[50];
-            while (!this.IsDisposed) {
-                //Array.Clear(result, 0, 4);
-                int size = mySerialPort.Read(data_buffer, 200);
-                String str = new String(data_buffer);
-                System.Console.WriteLine(str);
-                if (!str.StartsWith("#CARSTATE")) {
-                    int head_index = str.IndexOf("#CARSTATE");
-                    if (head_index < 0) {
-                        continue;
-                    }
-                    str = str.Substring(head_index);
-                }
-                int _baifenhao_index = str.IndexOf("%");
-                if (_baifenhao_index == -1) {
-                    Console.WriteLine("Wrong Str Rear: " + str);
-                    continue;
-                }
-                str = str.Substring(0, _baifenhao_index);
-                if (str.Length != 49) {
-                    Console.WriteLine("Wrong Str Length: " + str);
-                    continue;
-                }
+        static float[] result = new float[4];
+        
 
-                int _X_index = str.IndexOf("_X");
-                int _Y_index = str.IndexOf("_Y");
-                int _A_index = str.IndexOf("_A");
-                int _S_index = str.IndexOf("_S");
-                if (_X_index == -1) {
-                    Console.WriteLine("Wrong Index: _X " + _X_index);
-                    continue;
-                }
-                if (_Y_index == -1) {
-                    Console.WriteLine("Wrong Index: _Y " + _Y_index);
-                    continue;
-                }
-                if (_A_index == -1) {
-                    Console.WriteLine("Wrong Index: _A " + _A_index);
-                    continue;
-                }
-                if (_S_index == -1) {
-                    Console.WriteLine("Wrong Index: _S " + _S_index);
-                    continue;
-                }
-
-                String _X_str = null;
-                String _Y_str = null;
-                String _A_str = null;
-                String _S_str = null;
-                try {
-                    _X_str = str.Substring(_X_index + 2, _Y_index - _X_index - 2);
-                    _Y_str = str.Substring(_Y_index + 2, _A_index - _Y_index - 2);
-                    _A_str = str.Substring(_A_index + 2, _S_index - _A_index - 2);
-                    _S_str = str.Substring(_S_index + 2, str.IndexOf("$") - _S_index - 2);
-                } catch {
-                    Console.WriteLine("Wrong Str Format: " + str);
-                    continue;
-                }
-
-                try {
-                    result[0] = float.Parse(_X_str);
-                    result[1] = float.Parse(_Y_str);
-                    result[2] = float.Parse(_A_str);
-                    result[3] = float.Parse(_S_str);
-                } catch {
-                    Console.WriteLine("Wrong Number Str: " + _X_str + " " + _Y_str + " " + _A_str + " " + _S_str);
-                    continue;
-                }
-                System.Console.WriteLine("Result: {0} {1} {2} {3}", result[0], result[1], result[2], result[3]);
+        public static void setMapResult(float[] newResult) {
+            for (int i = 0; i < result.Length; i++) {
+                result[i] = newResult[i];
             }
         }
 
         private void showTrace() {
-            result = new float[4];
-            for (int i = 0; i < result.Length; i++) {
-                result[i] = 0;
-            }
+            Array.Clear(result, 0, 4);
             pixelStep = 0.1f;
             metterPixel = 1 / pixelStep;
             bmp = new Bitmap(mapPanel.Width, mapPanel.Height);
@@ -434,8 +347,6 @@ namespace AmazingCarRemoteController {
                  MessageBox.Show(ex.Message);
              }
         }
-
-        
     }
 
     public class MyPoint {
