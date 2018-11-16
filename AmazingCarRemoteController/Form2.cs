@@ -16,6 +16,8 @@ namespace AmazingCarRemoteController {
         public Form2() {
             InitializeComponent();
             this.mapPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.mapPanel_MouseWheel);
+            this.isMouseDown = false;
+            this.downPoint = new MyPoint(0, 0);
         }
 
         public static void setPortObj(MySerialPort port) {
@@ -37,6 +39,37 @@ namespace AmazingCarRemoteController {
             Thread th1 = new Thread(showTrace);
             th1.Start();
             textBox1.Text = "D:/Target.txt";
+
+            //Thread th2 = new Thread(testThreadFunc);
+            //th2.Start();
+        }
+
+        private void testThreadFunc() {
+            float[] res = new float[4];
+            float count = 0.0f;
+            while(true){
+                res[0] = 30 * (float)Math.Cos(count);
+                res[1] = 30 * (float)Math.Sin(count);
+                count += 0.005f;
+                setMapResult(res);
+                Thread.Sleep(100);
+            }
+            
+        }
+
+        private delegate void SetTextCallbackWithContent(RichTextBox textBox, String tips);
+
+        private void setRichTextBox(RichTextBox textBox, String tips) {
+            if (textBox.InvokeRequired) {
+                SetTextCallbackWithContent d = new SetTextCallbackWithContent(setRichTextBox);
+                try {
+                    textBox.Invoke(d, textBox, tips);
+                } catch {
+                    return;
+                }
+            } else {
+                textBox.Text = tips;
+            }
         }
 
 
@@ -50,6 +83,10 @@ namespace AmazingCarRemoteController {
         //1个像素等于实际距离的多少米
         float pixelStep;
         float metterPixel;
+        //鼠标操作
+        bool isMouseDown;
+        MyPoint downPoint;
+        Point offsetVector;
 
         Bitmap bmp;
         static float[] result = new float[4];
@@ -82,6 +119,8 @@ namespace AmazingCarRemoteController {
             tracePointCount = 0;
             latestTracePoint = new MyPoint(-50000, -50000);
             while (!this.IsDisposed) {
+                String tips = "X坐标:" + result[0] + "\nY坐标:" + result[1] + "\n角 度:" + result[2] + "\n状 态:" + result[3];
+                setRichTextBox(richTextBox2, tips);
                 drawMap(g, rg, result);
             }
         }
@@ -98,14 +137,14 @@ namespace AmazingCarRemoteController {
                 default: carColor = Color.Black; break;
             }
             g.Clear(Color.White);
-            float render_x = mapPanel.Width / 2 + result[0] / pixelStep;
-            float render_y = mapPanel.Height / 2 - result[1] / pixelStep;
+            float render_x = mapPanel.Width / 2 + result[0] / pixelStep + offsetVector.X / pixelStep;
+            float render_y = mapPanel.Height / 2 - result[1] / pixelStep + offsetVector.Y / pixelStep;
             while (result[2] < 0) {
                 result[2] += 360;
             }
             //original point
             //##################################
-            g.FillEllipse(blb, mapPanel.Width / 2 - 7, mapPanel.Height / 2 - 7, 15, 15);
+            g.FillEllipse(blb, mapPanel.Width / 2 - 7 + offsetVector.X / pixelStep, mapPanel.Height / 2 - 7 + offsetVector.Y / pixelStep, 15, 15);
             //##################################画目标点
             drawTargetPoints(g);
             //##################################画轨迹点
@@ -118,12 +157,12 @@ namespace AmazingCarRemoteController {
             //目标点坐标
             for (int i = 0; i < targetPointCount; i++) {
                 MyPoint p = targetPoints[i];
-                int x = (int)(mapPanel.Width / 2 + p.X / pixelStep);
-                int y = (int)(mapPanel.Height / 2 - p.Y / pixelStep);
+                int x = (int)(mapPanel.Width / 2 + p.X / pixelStep + offsetVector.X / pixelStep);
+                int y = (int)(mapPanel.Height / 2 - p.Y / pixelStep + offsetVector.Y / pixelStep);
                 drawText(g, "T" + i + "(" + p.X + "  " + p.Y + ")", x - 3, y - 13, Color.Red);
             }
             //原点坐标
-            drawText(g, "O(0 0)", mapPanel.Width / 2 - 10, mapPanel.Height / 2 - 23, Color.Red);
+            drawText(g, "O(0 0)", mapPanel.Width / 2 - 10 + offsetVector.X / pixelStep, mapPanel.Height / 2 - 23 + offsetVector.Y / pixelStep, Color.Red);
             //车坐标
             drawText(g, "Car(" + result[0].ToString("F2") + "  " + result[1].ToString("F2") + ")", render_x - 40, render_y - 30, Color.Red);
 
@@ -222,9 +261,9 @@ namespace AmazingCarRemoteController {
             
             for (int i = 0; i < tracePointCount; i++) {
                 MyPoint p = tracePoints[i];
-                int r = 6;
-                int x = (int)(mapPanel.Width / 2 + p.X / pixelStep - r / 2);
-                int y = (int)(mapPanel.Height / 2 + p.Y / pixelStep - r / 2);
+                int r = 5;
+                int x = (int)(mapPanel.Width / 2 + p.X / pixelStep - r / 2 + offsetVector.X / pixelStep);
+                int y = (int)(mapPanel.Height / 2 + p.Y / pixelStep - r / 2 + offsetVector.Y / pixelStep);
                 switch (traceColors[i]) {
                     case 4: g.FillEllipse(gb, x, y, r, r); break;
                     case 5: g.FillEllipse(rb, x, y, r, r); break;
@@ -240,8 +279,8 @@ namespace AmazingCarRemoteController {
         private void drawTargetPoints(Graphics g) {
             for (int i = 0; i < targetPointCount; i++) {
                 MyPoint p = targetPoints[i];
-                int x = (int)(mapPanel.Width / 2 + p.X / pixelStep);
-                int y = (int)(mapPanel.Height / 2 - p.Y / pixelStep);
+                int x = (int)(mapPanel.Width / 2 + p.X / pixelStep + offsetVector.X / pixelStep);
+                int y = (int)(mapPanel.Height / 2 - p.Y / pixelStep + offsetVector.Y / pixelStep);
                 g.FillEllipse(ygb, x - 5, y - 5, 10, 10);
             }
         }
@@ -256,26 +295,17 @@ namespace AmazingCarRemoteController {
                 //横线
                 g.DrawLine(pen, 0, i * mapPanel.Height / 10, mapPanel.Width, i * mapPanel.Height / 10);
                 //画字
-                calibration = -1 * (i * mapPanel.Width / 10 - mapPanel.Width / 2) * pixelStep;
+                calibration = -1 * (i * mapPanel.Width / 10 - mapPanel.Width / 2) * pixelStep + offsetVector.Y;
                 text = calibration.ToString("F3");
                 drawText(g, text, 0, i * mapPanel.Width / 10, Color.Black);
 
                 //竖线
                 g.DrawLine(pen, i * mapPanel.Width / 10, 0, i * mapPanel.Width / 10,mapPanel.Height);
                 //画字
-                calibration = (i * mapPanel.Height / 10 - mapPanel.Height / 2) * pixelStep;
+                calibration = (i * mapPanel.Height / 10 - mapPanel.Height / 2) * pixelStep - offsetVector.X;
                 text = calibration.ToString("F3");
                 drawText(g, text, i * mapPanel.Height / 10, 0, Color.Black);
             }  
-        }
-
-        private void mapPanel_MouseDown(object sender, MouseEventArgs e) {
-            //Point p = e.Location;
-            //p.X -= mapPanel.Width / 2;
-            //p.Y -= mapPanel.Height / 2;
-            
-            //MyPoint mp = new MyPoint(p.X, p.Y);
-            //targetPoints[targetPointCount++] = mp; 
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -347,6 +377,44 @@ namespace AmazingCarRemoteController {
                  MessageBox.Show(ex.Message);
              }
         }
+
+
+
+
+        private void mapPanel_MouseDown(object sender, MouseEventArgs e) {
+            isMouseDown = true;
+
+            Point p = e.Location;
+            downPoint.X = p.X;
+            downPoint.Y = p.Y;
+
+            //p.X -= mapPanel.Width / 2;
+            //p.Y -= mapPanel.Height / 2;
+            //Point p = e.Location;
+            //p.X -= mapPanel.Width / 2;
+            //p.Y -= mapPanel.Height / 2;
+
+            //MyPoint mp = new MyPoint(p.X, p.Y);
+            //targetPoints[targetPointCount++] = mp; 
+        }
+
+        private void mapPanel_MouseMove(object sender, MouseEventArgs e) {
+            Point p = e.Location;
+            if (isMouseDown == true) {
+                int dx = (int)downPoint.X - p.X;
+                int dy = (int)downPoint.Y - p.Y;
+                downPoint.X = p.X;
+                downPoint.Y = p.Y;
+                offsetVector.X += dx / 5;
+                offsetVector.Y += dy / 5;
+            }
+        }
+
+        private void mapPanel_MouseUp(object sender, MouseEventArgs e) {
+            isMouseDown = false;
+        }
+
+
     }
 
     public class MyPoint {

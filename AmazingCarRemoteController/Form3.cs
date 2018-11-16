@@ -12,7 +12,7 @@ using System.Windows.Forms;
 namespace AmazingCarRemoteController {
     public partial class Form3 : Form {
 
-        private MySerialPort dataTranser;
+        private MySerialPort dataTranser = null;
 
 
         public String[] ControllerCmd = new String[]{
@@ -36,23 +36,31 @@ namespace AmazingCarRemoteController {
             InitializeComponent();
             //Control.CheckForIllegalCrossThreadCalls = false;
             dataTranser = port;
+            
         }
 
         private void Form3_Load(object sender, EventArgs e) {
-            comboBox1.Items.Add("/dev/ttyUSB0");
-            comboBox1.Items.Add("/dev/ttyUSB1");
-            comboBox1.Items.Add("/dev/ttyUSB2");
-            comboBox1.Items.Add("/dev/ttyUSB3");
-            comboBox1.Text = "/dev/ttyUSB2";
+            comboBox1.Items.Add("/dev/ttyS0");
+            comboBox1.Items.Add("/dev/ttyS1");
+            comboBox1.Items.Add("/dev/ttyS2");
+            comboBox1.Items.Add("/dev/ttyS3");
+            comboBox1.Text = "/dev/ttyS4";
             comboBox2.Items.Add("/dev/ttyUSB0");
             comboBox2.Items.Add("/dev/ttyUSB1");
             comboBox2.Items.Add("/dev/ttyUSB2");
             comboBox2.Items.Add("/dev/ttyUSB3");
-            comboBox2.Text = "/dev/ttyUSB0";
+            comboBox2.Text = "/dev/ttyUSB1";
 
-            Thread thread1 = new Thread(getDataTranserData);
-            thread1.Start();
+            Thread thread = new Thread(waitingPort);
+            thread.Start();
+        }
 
+        void waitingPort() {
+            while (!dataTranser.IsOpen()) {
+                Thread.Sleep(500);
+            }
+            Thread thread = new Thread(getDataTranserData);
+            thread.Start();
         }
 
         //打开算法节点
@@ -260,12 +268,12 @@ namespace AmazingCarRemoteController {
                                 }
                                 if (cmd.StartsWith("#CONTROLLERSTATE")) {
                                     float[] controllerState = handleControllerState(cmd);
-                                    setRichTextBox(richTextBox1, "Speed:" + controllerState[0] + "\nDirection:" + controllerState[1] + "\nCmdCount:" + cmdCount);
+                                    setRichTextBox(richTextBox4, "Speed:" + controllerState[0] + "\nDirection:" + controllerState[1] + "\nCmdCount:" + cmdCount);
                                     cmdCount++;
                                 }
                                 if (cmd.StartsWith("#GPRSSTATE")) {
                                     float[] gprsState = handleGprsState(cmd);
-                                    setRichTextBox(richTextBox1, "Lon:" + gprsState[0] + "\nLat:" + gprsState[1] + "\nOriAngle:" + gprsState[2] + "\nState:" + gprsState[3] + "\nCmdCount:" + cmdCount);
+                                    setRichTextBox(richTextBox2, "Lon:" + gprsState[0] + "\nLat:" + gprsState[1] + "\nOriAngle:" + gprsState[2] + "\nState:" + gprsState[3] + "\nCmdCount:" + cmdCount);
                                     cmdCount++;
                                 }
                             } else {

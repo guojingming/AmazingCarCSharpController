@@ -25,6 +25,7 @@
         private void InitializeComponent() {
             this.button1 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.button5 = new System.Windows.Forms.Button();
@@ -40,7 +41,7 @@
             this.button1.Location = new System.Drawing.Point(35, 1048);
             this.button1.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(297, 60);
+            this.button1.Size = new System.Drawing.Size(301, 60);
             this.button1.TabIndex = 0;
             this.button1.Text = "RUN";
             this.button1.UseVisualStyleBackColor = true;
@@ -48,6 +49,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.richTextBox2);
             this.groupBox1.Controls.Add(this.textBox1);
             this.groupBox1.Controls.Add(this.richTextBox1);
             this.groupBox1.Controls.Add(this.button5);
@@ -63,9 +65,18 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "ContollingPanel";
             // 
+            // richTextBox2
+            // 
+            this.richTextBox2.Location = new System.Drawing.Point(35, 844);
+            this.richTextBox2.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
+            this.richTextBox2.Name = "richTextBox2";
+            this.richTextBox2.Size = new System.Drawing.Size(297, 176);
+            this.richTextBox2.TabIndex = 15;
+            this.richTextBox2.Text = "";
+            // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(35, 353);
+            this.textBox1.Location = new System.Drawing.Point(35, 317);
             this.textBox1.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(297, 31);
@@ -73,17 +84,17 @@
             // 
             // richTextBox1
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(35, 416);
+            this.richTextBox1.Location = new System.Drawing.Point(35, 387);
             this.richTextBox1.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(294, 602);
+            this.richTextBox1.Size = new System.Drawing.Size(297, 422);
             this.richTextBox1.TabIndex = 13;
             this.richTextBox1.Text = "";
             // 
             // button5
             // 
             this.button5.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button5.Location = new System.Drawing.Point(35, 260);
+            this.button5.Location = new System.Drawing.Point(39, 233);
             this.button5.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(297, 60);
@@ -95,10 +106,10 @@
             // button4
             // 
             this.button4.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button4.Location = new System.Drawing.Point(35, 155);
+            this.button4.Location = new System.Drawing.Point(35, 142);
             this.button4.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(297, 60);
+            this.button4.Size = new System.Drawing.Size(301, 60);
             this.button4.TabIndex = 11;
             this.button4.Text = "Clear Trace";
             this.button4.UseVisualStyleBackColor = true;
@@ -110,7 +121,7 @@
             this.button2.Location = new System.Drawing.Point(35, 54);
             this.button2.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(297, 60);
+            this.button2.Size = new System.Drawing.Size(301, 60);
             this.button2.TabIndex = 1;
             this.button2.Text = "Clear Targets";
             this.button2.UseVisualStyleBackColor = true;
@@ -124,6 +135,8 @@
             this.mapPanel.Size = new System.Drawing.Size(1192, 1138);
             this.mapPanel.TabIndex = 2;
             this.mapPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.mapPanel_MouseDown);
+            this.mapPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.mapPanel_MouseMove);
+            this.mapPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.mapPanel_MouseUp);
             // 
             // Form2
             // 
@@ -137,6 +150,7 @@
             this.Name = "Form2";
             this.Text = "AmazingCarMap";
             this.Load += new System.EventHandler(this.Form2_Load);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.mapPanel_MouseDown);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -153,5 +167,6 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.RichTextBox richTextBox2;
     }
 }

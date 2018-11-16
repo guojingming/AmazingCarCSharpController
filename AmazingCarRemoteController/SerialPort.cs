@@ -19,12 +19,22 @@ namespace AmazingCarRemoteController {
             } catch {
                 System.Console.WriteLine("串口打开失败");
                 return false;
+            }    
+        }
+
+        public bool IsOpen() {
+            if (sp == null) {
+                return false;
             }
-            
+            return sp.IsOpen;
         }
 
         public void DiscardInBuffer() {
             sp.DiscardInBuffer();
+        }
+
+        public void DiscardOutBuffer() {
+            sp.DiscardOutBuffer();
         }
 
         public int Read(char[] buffer, int size) {
@@ -52,7 +62,6 @@ namespace AmazingCarRemoteController {
                 } else {
                     sp.Write(str);
                 }
-                
             } catch {
                 System.Console.WriteLine("串口写入失败！请检查串口是否已断开！");
             }
