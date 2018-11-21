@@ -17,6 +17,7 @@ namespace AmazingCarRemoteController {
             InitializeComponent();
             this.mapPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.mapPanel_MouseWheel);
             this.isMouseDown = false;
+            this.isMouseMove = false;
             this.downPoint = new MyPoint(0, 0);
         }
 
@@ -85,6 +86,7 @@ namespace AmazingCarRemoteController {
         float metterPixel;
         //鼠标操作
         bool isMouseDown;
+        bool isMouseMove;
         MyPoint downPoint;
         Point offsetVector;
 
@@ -109,6 +111,9 @@ namespace AmazingCarRemoteController {
             for (int i = 0; i < 100; i++) {
                 targetPoints[i] = new MyPoint();
             }
+
+            
+
             targetPointCount = 0;
             maxTracePointCount = 200;
             tracePoints = new MyPoint[maxTracePointCount];
@@ -121,7 +126,12 @@ namespace AmazingCarRemoteController {
             while (!this.IsDisposed) {
                 String tips = "X坐标:" + result[0] + "\nY坐标:" + result[1] + "\n角 度:" + result[2] + "\n状 态:" + result[3];
                 setRichTextBox(richTextBox2, tips);
-                drawMap(g, rg, result);
+                try {
+                    drawMap(g, rg, result);
+                } catch {
+                    System.Console.WriteLine("Draw Map Exception Occured!");
+                }
+                
             }
         }
 
@@ -143,6 +153,8 @@ namespace AmazingCarRemoteController {
                 result[2] += 360;
             }
             //original point
+            //##################################画底图
+            drawBackGroundImg(g);
             //##################################
             g.FillEllipse(blb, mapPanel.Width / 2 - 7 + offsetVector.X / pixelStep, mapPanel.Height / 2 - 7 + offsetVector.Y / pixelStep, 15, 15);
             //##################################画目标点
@@ -180,6 +192,12 @@ namespace AmazingCarRemoteController {
                 traceColors[tracePointCount] = state;
                 latestTracePoint = realPoint;
             }
+        }
+
+        private void drawBackGroundImg(Graphics g) {
+            //string path = @"Resources/1.png";
+            //Image imgSrc = Image.FromFile(path);
+            //g.DrawImage(imgSrc, new Rectangle(0, 0, 1200, 600), 0, 0, imgSrc.Width, imgSrc.Height, GraphicsUnit.Pixel);
         }
 
         private float distance(MyPoint p1, MyPoint p2) {
@@ -298,7 +316,6 @@ namespace AmazingCarRemoteController {
                 calibration = -1 * (i * mapPanel.Width / 10 - mapPanel.Width / 2) * pixelStep + offsetVector.Y;
                 text = calibration.ToString("F3");
                 drawText(g, text, 0, i * mapPanel.Width / 10, Color.Black);
-
                 //竖线
                 g.DrawLine(pen, i * mapPanel.Width / 10, 0, i * mapPanel.Width / 10,mapPanel.Height);
                 //画字
@@ -310,6 +327,7 @@ namespace AmazingCarRemoteController {
 
         private void button1_Click(object sender, EventArgs e) {
             try {
+                
                 //替换设备号
                 String cmd = "#TAR_COUNT_0$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";
                 cmd = cmd.Replace("0", targetPointCount + "");
@@ -352,11 +370,11 @@ namespace AmazingCarRemoteController {
         }
 
         private void button5_Click_1(object sender, EventArgs e) {
-            richTextBox1.Text = "";
+            //richTextBox1.Text = "";
             String filePath = textBox1.Text;
             try{
                  if (File.Exists(filePath)) {
-                     targetPointCount = 0;
+                     //targetPointCount = 0;
                      char[] separator = { '\r','\n' };
                      String tarText = File.ReadAllText(filePath);
                      string[] tars = tarText.Split(separator);
@@ -364,7 +382,7 @@ namespace AmazingCarRemoteController {
                          if (tarStr.Equals("")) {
                              continue;
                          }
-                         float x = float.Parse(tarStr.Substring(0, tarStr.IndexOf(' ')));
+                         float x = float.Parse(tarStr.Substring(0, tarStr.IndexOf(',')));
                          float y = float.Parse(tarStr.Substring(tarStr.IndexOf(' ') + 1));
                          targetPoints[targetPointCount++] = new MyPoint(x, y);
                          richTextBox1.Text += (x + ", " + y + "\n");
@@ -382,12 +400,13 @@ namespace AmazingCarRemoteController {
 
 
         private void mapPanel_MouseDown(object sender, MouseEventArgs e) {
-            isMouseDown = true;
-
             Point p = e.Location;
             downPoint.X = p.X;
             downPoint.Y = p.Y;
-
+            if (e.Button == MouseButtons.Left) { 
+                isMouseDown = true;
+                isMouseMove = false;
+            }
             //p.X -= mapPanel.Width / 2;
             //p.Y -= mapPanel.Height / 2;
             //Point p = e.Location;
@@ -400,6 +419,7 @@ namespace AmazingCarRemoteController {
 
         private void mapPanel_MouseMove(object sender, MouseEventArgs e) {
             Point p = e.Location;
+            isMouseMove = true;
             if (isMouseDown == true) {
                 int dx = (int)downPoint.X - p.X;
                 int dy = (int)downPoint.Y - p.Y;
@@ -407,14 +427,89 @@ namespace AmazingCarRemoteController {
                 downPoint.Y = p.Y;
                 offsetVector.X += dx / 5;
                 offsetVector.Y += dy / 5;
+                textBox2.Text = offsetVector.X.ToString();
+                textBox3.Text = offsetVector.Y.ToString();
             }
         }
 
         private void mapPanel_MouseUp(object sender, MouseEventArgs e) {
-            isMouseDown = false;
+            if (e.Button == MouseButtons.Left) {
+                isMouseDown = false;
+                MyPoint realCoordinate = new MyPoint(downPoint.X * pixelStep - mapPanel.Width * pixelStep / 2 - offsetVector.X, -1 * downPoint.Y * pixelStep + mapPanel.Width * pixelStep / 2 + offsetVector.Y);
+                if (!isMouseMove) {
+                    targetPoints[targetPointCount++] = realCoordinate;
+                    String newTarPointStr = realCoordinate.X + ", " + realCoordinate.Y + "\n";
+                    richTextBox1.Text += newTarPointStr;
+                }
+            } else if (e.Button == MouseButtons.Right) {
+                MyPoint realCoordinate = new MyPoint(downPoint.X * pixelStep - mapPanel.Width * pixelStep / 2 - offsetVector.X, -1 * downPoint.Y * pixelStep + mapPanel.Width * pixelStep / 2 + offsetVector.Y);
+                //delete target point
+                for (int i = 0; i < targetPointCount; i++) {
+                    if (Math.Abs(targetPoints[i].X - realCoordinate.X) <= 1 && Math.Abs(targetPoints[i].Y - realCoordinate.Y) <= 1) {
+                        for (int j = i; j < targetPointCount - 1; j++) {
+                            targetPoints[j] = targetPoints[j + 1];
+                        }
+                        targetPointCount--;
+                        break;
+                    }
+                }
+                richTextBox1.Text = "";
+                for (int i = 0; i < targetPointCount;i++ ) {
+                    richTextBox1.Text += (targetPoints[i].X + ", " + targetPoints[i].Y + "\n");
+                }
+            }
         }
 
+        private void button3_Click(object sender, EventArgs e) {
+            String xLocateStr = textBox2.Text;
+            String yLocateStr = textBox3.Text;
+            int xLocate = 0;
+            int yLocate = 0;
+            bool flag = true;
+            try {
+                xLocate = Int32.Parse(xLocateStr);
+                yLocate = Int32.Parse(yLocateStr);
+            } catch {
+                flag = false;
+            }
+            if (!flag) {
+                MessageBox.Show("请输入合法的X,Y中心位置值");
+            }
+            offsetVector.X = xLocate;
+            offsetVector.Y = yLocate;
+        }
 
+        private void button6_Click(object sender, EventArgs e) {
+            Array.Clear(targetPoints, 0, targetPointCount);
+            targetPointCount = 0;
+            String tarText = richTextBox1.Text;
+            char[] sperator = new char[2] { '\r', '\n' };
+            string[] tars = tarText.Split(sperator);
+            foreach (String tarStr in tars) {
+                if (tarStr.Equals("")) {
+                    continue;
+                }
+                float x = float.Parse(tarStr.Substring(0, tarStr.IndexOf(',')));
+                float y = float.Parse(tarStr.Substring(tarStr.IndexOf(' ') + 1));
+                targetPoints[targetPointCount++] = new MyPoint(x, y);
+            }
+        }
+
+        private void button7_Click(object sender, EventArgs e) {
+            DialogResult choose = MessageBox.Show("确定保存目标点坐标到" + textBox1.Text + "中吗?", "注意", MessageBoxButtons.OKCancel);
+            if (choose == DialogResult.OK) {
+                try {
+                    String filePath = textBox1.Text;
+                    //获得字节数组
+                    String data = richTextBox1.Text;
+                    //开始写入
+                    File.WriteAllText(filePath, data);
+                    MessageBox.Show("保存成功");
+                } catch (Exception ex) {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
     }
 
     public class MyPoint {

@@ -45,11 +45,11 @@ namespace AmazingCarRemoteController {
             comboBox1.Items.Add("/dev/ttyS2");
             comboBox1.Items.Add("/dev/ttyS3");
             comboBox1.Text = "/dev/ttyS4";
-            comboBox2.Items.Add("/dev/ttyUSB0");
-            comboBox2.Items.Add("/dev/ttyUSB1");
-            comboBox2.Items.Add("/dev/ttyUSB2");
-            comboBox2.Items.Add("/dev/ttyUSB3");
-            comboBox2.Text = "/dev/ttyUSB1";
+            comboBox2.Items.Add("/dev/ttyS0");
+            comboBox2.Items.Add("/dev/ttyS1");
+            comboBox2.Items.Add("/dev/ttyS2");
+            comboBox2.Items.Add("/dev/ttyS3");
+            comboBox2.Text = "/dev/ttyS1";
 
             Thread thread = new Thread(waitingPort);
             thread.Start();
@@ -168,17 +168,17 @@ namespace AmazingCarRemoteController {
             }
         }
 
-        private void button10_Click(object sender, EventArgs e) {
+        private void button11_Click(object sender, EventArgs e) {
             try {
-                dataTranser.WriteString(ControllerCmd[11], true);
+                dataTranser.WriteString(ControllerCmd[9], true);
             } catch {
                 System.Console.WriteLine("请先打开串口");
             }
         }
 
-        private void button11_Click(object sender, EventArgs e) {
+        private void button10_Click(object sender, EventArgs e) {
             try {
-                dataTranser.WriteString(ControllerCmd[9], true);
+                dataTranser.WriteString(ControllerCmd[11], true);
             } catch {
                 System.Console.WriteLine("请先打开串口");
             }
